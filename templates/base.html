@@ -1,0 +1,89 @@
+{% from 'bootstrap/nav.html' import render_nav_item %}
+
+
+<!doctype html>
+<html lang="en">
+  <head>
+    {% block head %}
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    {% block styles %}
+    <!-- Bootstrap CSS -->
+    {{ bootstrap.load_css() }}
+    {% endblock %}
+
+    <title>NTX</title>
+    <h1>Nanotank Water Exchanger</h1>
+    
+  </head>
+    {% endblock %}
+  <body>
+
+    {% block navbar %}
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="navbar-nav mr-auto">
+        {{ render_nav_item('index', 'Home') }}
+        {{ render_nav_item('settings', 'Settings') }}
+        {{ render_nav_item('analytics', 'Analytics') }}
+    </div>
+    </nav>
+
+    {% endblock %}
+
+    <!-- Your page content -->
+    {% block content %}
+    <div class="container">
+    {% block page_content %}{% endblock %}
+    </div>
+    {% endblock %}
+
+    {% block scripts %}
+    <!-- Optional JavaScript -->
+    
+    {{ moment.include_moment() }}
+    
+    <script src="//code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
+    
+    <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js" integrity="sha256-yr4fRk/GU1ehYJPAs8P4JlTgu0Hdsp4ZKrx8bDEDC3I=" crossorigin="anonymous"></script>
+    
+    <script type="text/javascript" charset="utf-8">
+    $(document).ready(function() {
+    // An application can open a connection on multiple namespaces, and
+    // Socket.IO will multiplex all those connections on a single
+    // physical channel. If you don't care about multiple channels, you
+    // can set the namespace to an empty string.
+    namespace = '/aqState';
+
+    // Connect to the Socket.IO server.
+    // The connection URL has the following format, relative to the current page:
+    //     http[s]://<domain>:<port>[/<namespace>]
+    var socket = io(namespace);
+
+    // Event handler for new connections.
+    // The callback function is invoked when a connection with the
+    // server is established.
+    socket.on('connect', function() {
+        socket.emit('client_response', {data: 'I\'m connected!'});
+    });
+
+    socket.on('aqStatemsg', function(msg) {
+        console.log("Received number" + msg.data)
+        let x = []                
+        for (let key in msg.data) {
+          //console.log("number is " + msg.data[key])
+          x.push('<li>' + key + ": " + msg.data[key] + '</li>')
+        };
+        console.log(x)
+        $('#aqStatelist').html(x)
+    });
+
+});
+    </script>
+    {% endblock %}
+
+  </body>
+
+</html>
+
