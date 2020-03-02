@@ -22,21 +22,14 @@ socketio = SocketIO(app, async_mode=async_mode, cors_allowed_origins="*")
 thread = None
 thread_lock = Lock()
 
-
-#app.config['SQLALCHEMY_DATABASE_URI'] =\
-#	'sqlite:///' + os.path.join(basedir, 'data.sqlite')
-#app.config['SQLALfCHEMY_TRACK_MODIFICATIONS'] = False
-
 bootstrap = Bootstrap(app)
 moment = Moment(app)
-#db = SQLAlchemy(app)
-#migrate = Migrate(app, db)
 
 #aquarium = ntxpi.aquarium()
 
 # runs every x seconds and updates values on WEBUI
 aqdict = {
-	'temp': random.randrange(0,30),
+	'temp': random.randrange(0,60),
 	'drv0' : True if random.randrange(0,2) == 0 else False,
 	'drv1' : True if random.randrange(0,2) == 0 else False,
 	'AqFlag' : random.randrange(0,2),
@@ -45,11 +38,17 @@ aqdict = {
 	'SpareFlag' : random.randrange(0,2),
 	}
 
+aqConfig = {
+	'tempmax' : 40,
+	'tempmin' : 10
+}
+
 def aqState():
 	while True:
 		socketio.sleep(1)
 		aqdict['temp'] = random.randrange(0,30)
 		aqdict['CleanFlag'] = random.randrange(0,2)
+		aqdict['AqFlag'] = random.randrange(0,2)
 		aqdict['drv0'] = True if random.randrange(0,2) == 0 else False
 		#pinstatus = aquarium.pinsIn
 		socketio.emit('aqStatemsg', 
@@ -88,10 +87,17 @@ def aqState_monitor():
 		if thread is None:
 			thread = socketio.start_background_task(aqState)
 
-@socketio.on('disconnect', namespace='/test')
+@socketio.on('disconnect', namespace='/aqState')
 def test_disconnect():
 	print('Client disconnected')
 	#uncompleted
+
+@socketio.on('my_event', namespace='/aqState')
+def test_message(message):
+	print(message['data'])
+	aqConfig['tempmax'] = message['data']
+	print(aqConfig['tempmax'])
+
 
 if __name__ == '__main__': 
   socketio.run(app, host='0.0.0.0',debug=True, use_reloader=False) 

@@ -3,11 +3,83 @@
 {% block title %}NTX Home{% endblock %}
 
 {% block page_content %}
-<div class="page-header">
-<h1>Aquarium Status</h1>
-</div>
-
 <body>
     <ul id='aqStatelist'><font color='blue'><i>Loading aquarium state, please wait...</font></i></ul>
+    <div class="container-fluid" id="stateGUI">
+        <div class="row mb-5">
+            <div class="col-5 text-center">
+                <h2 class="display-4" id="temp">57 <span class = 'text-muted'>C</span></h2>
+                <p class="text-muted">Temp</p>
+            </div>
+            <div class="col-2 divider">
+    
+            </div>
+            <div class="col-5 text-center">
+                <h2 class="display-4" id='aquaState'>Stable</h2>
+                <p class="text-muted">Status</p>
+            </div>
+        </div>
+    <div class="container-fluid">
+        <div class="row">
+            <button type="button" id="manualEx" class="btn btn-outline-primary btn-sm btn-block ml-3 mr-3 mb-1">Exchange</button>
+            <button type="button" class="btn btn-outline-primary btn-sm btn-block ml-3 mr-3 mb-1">Auto-topoff</button>
+        </div>
+    <div class="row">
+        <div class = "slidecontainer col-3">
+        <label for="motorSlide">Motor Speed</label>
+        <input type="range" min="1" max="100" value="50" class="slider" id="myRange">
+        <p>Value: <span id="demo"></span></p>
+    </div>
+    <div class="row">
+        <form id="emit" method="POST" action='#'>
+            <input type="text" name="emit_data" id="emit_data" placeholder="Message">
+            <input type="submit" value="Echo">
+    </div>
 <body>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script>
+        $(document).ready(function() {
+
+            namespace = '/aqState';
+
+            var socket = io(namespace);
+
+            socket.on('aqStatemsg', function(msg) {
+            console.log(msg.data['temp'])
+            let temp = document.getElementById("temp");
+            let aquaState = document.getElementById("aquaState");
+            temp.innerText = (msg.data['temp'] + ' C');
+            aquaState.innerText = msg.data['AqFlag'];
+            });
+
+            //This lets us push data from the form
+            $('form#emit').submit(function(event) {
+                socket.emit('my_event', {data: $('#emit_data').val()});
+                let submitted = document.getElementById('emit_data').value;
+                console.log(submitted);
+                return false;
+            });
+
+            //This lets us push the data from the slider to our dictionary
+            let priorVal = 0;
+            let slider = document.getElementById("myRange");
+            let output = document.getElementById("demo");
+            console.log(slider)
+            output.innerHTML = slider.value;
+            slider.oninput = function() {
+                output.innerHTML = this.value;
+                if (slider.value !== priorVal) socket.emit('my_event', {data: $('#myRange').val()});
+                console.log(slider.value)
+                priorVal = slider.value;
+        };
+        });
+    </script>
+
+    <script>
+
+        
+    </script>
 {% endblock %}
