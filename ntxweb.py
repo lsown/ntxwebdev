@@ -36,6 +36,7 @@ aqdict = {
 	'CleanFlag' : random.randrange(0,2),
 	'WasteFlag' : random.randrange(0,2),
 	'SpareFlag' : random.randrange(0,2),
+	'exchangeState' : False
 	}
 
 aqConfig = {
@@ -94,10 +95,17 @@ def test_disconnect():
 
 @socketio.on('my_event', namespace='/aqState')
 def test_message(message):
-	print(message['data'])
-	aqConfig['tempmax'] = message['data']
-	print(aqConfig['tempmax'])
+	print('Exchange is ' + str(message['data']['exchangeState']))
+	aqdict['exchangeState'] = message['data']['exchangeState']
+	print('AqDict is ' + str(aqdict['exchangeState']))
+	#aqConfig['tempmax'] = message['data']
+	#print(aqConfig['tempmax'])
 
+@socketio.on('button_event', namespace='/aqState')
+def button_message(message):
+	print(message['data']['exchange'])
+	#aqConfig['tempmax'] = message['data']
+	#print(aqConfig['tempmax'])
 
 if __name__ == '__main__': 
   socketio.run(app, host='0.0.0.0',debug=True, use_reloader=False) 

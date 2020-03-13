@@ -8,32 +8,43 @@
     <div class="container-fluid" id="stateGUI">
         <div class="row mb-5">
             <div class="col-5 text-center">
-                <h2 class="display-4" id="temp">57 <span class = 'text-muted'>C</span></h2>
+                <h2 class="display-4" id="temp">na <span class = 'text-muted'>C</span></h2>
                 <p class="text-muted">Temp</p>
             </div>
             <div class="col-2 divider">
     
             </div>
             <div class="col-5 text-center">
-                <h2 class="display-4" id='aquaState'>Stable</h2>
+                <h2 class="display-4" id='aquaState'>na</h2>
                 <p class="text-muted">Status</p>
             </div>
         </div>
+        <div class="row mb-5">
+            <div class="col-5 text-center">
+                <h2 class="display-4" id="exchangeState">...</h2>
+                <p class="text-muted">Exchange</p>
+            </div>
+        </div>
+
     <div class="container-fluid">
         <div class="row">
-            <button type="button" id="manualEx" class="btn btn-outline-primary btn-sm btn-block ml-3 mr-3 mb-1">Exchange</button>
+            <button type="button" id="startEx" class="btn btn-outline-primary btn-sm btn-block ml-3 mr-3 mb-1">Start Exchange</button>
+            <button type="button" id="stopEx" class="btn btn-outline-danger btn-sm btn-block ml-3 mr-3 mb-1">Stop Exchange</button>
             <button type="button" class="btn btn-outline-primary btn-sm btn-block ml-3 mr-3 mb-1">Auto-topoff</button>
+            <button type="button" id="testButton" class="btn btn-outline-danger btn-sm btn-block ml-3 mr-3 mb-1">Test Exchange</button>
         </div>
-    <div class="row">
-        <div class = "slidecontainer col-3">
-        <label for="motorSlide">Motor Speed</label>
-        <input type="range" min="1" max="100" value="50" class="slider" id="myRange">
-        <p>Value: <span id="demo"></span></p>
-    </div>
-    <div class="row">
-        <form id="emit" method="POST" action='#'>
-            <input type="text" name="emit_data" id="emit_data" placeholder="Message">
-            <input type="submit" value="Echo">
+
+        <div class="row">
+            <div class = "slidecontainer col-3">
+            <label for="motorSlide">Motor Speed</label>
+            <input type="range" min="1" max="100" value="50" class="slider" id="myRange">
+            <p>Value: <span id="demo"></span></p>
+        </div>
+        <div class="row">
+            <form id="emit" method="POST" action='#'>
+                <input type="text" name="emit_data" id="emit_data" placeholder="Message">
+                <input type="submit" value="Echo">
+        </div>
     </div>
 <body>
 {% endblock %}
@@ -47,15 +58,18 @@
 
             var socket = io(namespace);
 
+            //Pulls data from the server JSON and inserts it into page. Update 1/sec.
             socket.on('aqStatemsg', function(msg) {
             console.log(msg.data['temp'])
             let temp = document.getElementById("temp");
             let aquaState = document.getElementById("aquaState");
+            let exchangeState = document.getElementById("exchangeState");
             temp.innerText = (msg.data['temp'] + ' C');
             aquaState.innerText = msg.data['AqFlag'];
+            exchangeState.innerText = msg.data['exchangeState'];
             });
 
-            //This lets us push data from the form
+            //This lets us push data from a form
             $('form#emit').submit(function(event) {
                 socket.emit('my_event', {data: $('#emit_data').val()});
                 let submitted = document.getElementById('emit_data').value;
@@ -64,9 +78,10 @@
             });
 
             //This lets us push the data from the slider to our dictionary
+            //output shows the value in realtime, and emit pushes the range to the server
             let priorVal = 0;
-            let slider = document.getElementById("myRange");
-            let output = document.getElementById("demo");
+            let slider = document.getElementById("myRange"); //pulls data from slider
+            let output = document.getElementById("demo"); //displays # on UI
             console.log(slider)
             output.innerHTML = slider.value;
             slider.oninput = function() {
@@ -74,7 +89,57 @@
                 if (slider.value !== priorVal) socket.emit('my_event', {data: $('#myRange').val()});
                 console.log(slider.value)
                 priorVal = slider.value;
-        };
+            };
+
+            //Initialization of buttons on page load
+
+            //Button creation function, takes ID, button text, and 1 of 3 states
+            let createButton = function(buttonId, text, wantedState) {
+                let oldButton = document.getElementById(buttonId)
+                console.log('button presssed');  
+                let newButton = document.createElement("BUTTON")
+                newButton.type = "button";
+                newButton.innerText = text
+                newButton.id = buttonId;
+                switch(wantedState) {
+                    case 'disabled':
+                        newButton.classList.add('btn', 'btn-outline-secondary', 'btn-sm', 'btn-block', 'ml-3', 'mr-3', 'mb-1');
+                        newButton.disabled = true;
+                        break;
+                    case 'success':
+                        newButton.classList.add('btn', 'btn-outline-success', 'btn-sm', 'btn-block', 'ml-3', 'mr-3', 'mb-1');
+                        newButton.disabled = false;
+                    case 'enabled':
+                        newButton.classList.add('btn', 'btn-outline-primary', 'btn-sm', 'btn-block', 'ml-3', 'mr-3', 'mb-1');
+                        newButton.disabled = false;
+                    default:
+                        newButton.classList.add('btn', 'btn-outline-primary', 'btn-sm', 'btn-block', 'ml-3', 'mr-3', 'mb-1');
+                        newButton.disabled = false;
+                }
+                oldButton.parentNode.replaceChild(newButton, oldButton);
+                document.getElementById(newButton.id).addEventListener('click', () => {console.log("Mysterious Button clicked.")});
+            };
+
+            document.getElementById('testButton').onclick = function() {
+                createButton('testButton', 'testing', 'success');
+            };
+
+            document.getElementById('startEx').onclick = function() {
+                socket.emit('my_event', {data: {'exchangeState': true}})
+                createButton('startEx', 'Start Exchange - In Progress', 'disabled'); //resets start exchange to clickable
+            };
+
+            document.getElementById('stopEx').onclick = function() {
+                socket.emit('my_event', {data: {'exchangeState': false}})
+                //recreates start button with event listeners
+                createButton('startEx', 'Start Exchange', 'enabled'); //resets start exchange to clickable
+                document.getElementById('startEx').addEventListener('click', () => {socket.emit('my_event', {data: {'exchangeState': true}})})
+                document.getElementById('startEx').addEventListener('click', () => {createButton('startEx', 'Start Exchange - In Progress', 'disabled')})
+            };
+
+            //document.getElementById('stopEx').addEventListener('click', () => {console.log("Stop Button clicked.")});
+
+
         });
     </script>
 
