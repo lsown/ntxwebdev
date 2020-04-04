@@ -32,6 +32,8 @@ aqdict = {
 	'temp': random.randrange(0,60),
 	'drv0' : True if random.randrange(0,2) == 0 else False,
 	'drv1' : True if random.randrange(0,2) == 0 else False,
+	'drv0Spd' : 0,
+	'drv1Spd' : 0,
 	'AqFlag' : random.randrange(0,2),
 	'CleanFlag' : random.randrange(0,2),
 	'WasteFlag' : random.randrange(0,2),
@@ -95,9 +97,12 @@ def test_disconnect():
 
 @socketio.on('my_event', namespace='/aqState')
 def test_message(message):
-	print('Exchange is ' + str(message['data']['exchangeState']))
-	aqdict['exchangeState'] = message['data']['exchangeState']
-	print('AqDict is ' + str(aqdict['exchangeState']))
+	#sanity check for what is received
+	for x in message['data']:
+		print('Data received: %s is %s' % (x, message['data'][x])) # sanity check for 
+		aqdict[x] = message['data'][x]
+		print('Dictionary updated: %s is %s' % (x, aqdict[x])) # sanity check for 
+	socketio.emit('aqStatemsg', {'data' : aqdict}, namespace='/aqState')
 	#aqConfig['tempmax'] = message['data']
 	#print(aqConfig['tempmax'])
 
