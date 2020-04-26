@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Nanotank Water Exchange</title>
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-3">
+    <div class="container-fluid">
+        <a href="#" class="navbar-brand mr-1">Nanotank</a>
+        <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbarCollapse">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarCollapse">
+            <div class="navbar-nav">
+                <a href="#" class="nav-item nav-link active">Home</a>
+                <a href="#" class="nav-item nav-link">Settings</a>
+                <a href="#" class="nav-item nav-link">Analytics</a>
+                <a href="#" class="nav-item nav-link">Contact</a>
+            </div>
+            <div class="navbar-nav ml-auto">
+                <a href="#" class="nav-item nav-link">Register</a>
+                <a href="#" class="nav-item nav-link">Login</a>
+            </div>
+        </div>
+    </div>    
+</nav>
+<div class="container-fluid" id="stateGUI">
+    <div class="row mb-5">
+        <div class="col-5 text-center">
+            <h2 class="display-4">57 C</h2>
+            <p class="text-muted">Temp</p>
+        </div>
+        <div class="col-2 divider">
+
+        </div>
+        <div class="col-5 text-center">
+            <h2 class="display-4" id='aqTemp'>Stable</h2>
+            <p class="text-muted">Status</p>
+        </div>
+    </div>
+<div class="container-fluid">
+    <div class="row">
+        <button type="button" id="manualEx" class="btn btn-outline-primary btn-sm btn-block ml-3 mr-3 mb-1">Exchange</button>
+        <button type="button" class="btn btn-outline-primary btn-sm btn-block ml-3 mr-3 mb-1">Auto-topoff</button>
+    </div>
+    <div class="row">
+        <div class = "slidecontainer col-3">
+        <label for="motorSlide ml-3 mr-3">Motor Speed</label>
+        <input type="range" min="1" max="100" value="50" class="slider" id="myRange">
+        <p>Value: <span id="demo"></span></p>
+        </div>
+    </div>
+</div>   
+<footer>
+</footer>
+</body>
+<script>
+    let slider = document.getElementById("myRange");
+    let output = document.getElementById("demo");
+    output.innerHTML = slider.value;
+    slider.oninput = function() {
+        output.innerHTML = this.value;
+    }
+</script>
+<script>
+    let button = document.getElementById("manualEx");
+    button.addEventListener("click", () => {
+        console.log("Button clicked.");
+    });
+</script>
+</html>                            
